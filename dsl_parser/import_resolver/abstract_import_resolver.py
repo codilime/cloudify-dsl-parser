@@ -16,9 +16,14 @@
 import abc
 import contextlib
 import urllib2
+import time
+import requests
 
 from dsl_parser import exceptions
 
+DEFAULT_RETRY_DELAY = 1
+DEFAULT_NUMBER_RETRIES = 5
+DEFAULT_REQUEST_TIMEOUT = 30
 
 class AbstractImportResolver(object):
     """
@@ -41,13 +46,39 @@ class AbstractImportResolver(object):
         return read_import(import_url)
 
 
+def is_valid_code(code):
+    if code >= 200 and code <=299:
+        return True
+    return False
+
+
 def read_import(import_url):
-    try:
-        with contextlib.closing(urllib2.urlopen(import_url)) as f:
-            return f.read()
-    except Exception, ex:
-        ex = exceptions.DSLParsingLogicException(
-            13, 'Import failed: Unable to open import url '
-            '{0}; {1}'.format(import_url, str(ex)))
-        ex.failed_import = import_url
-        raise ex
+    if import_url.startswith('file://'):
+        try:
+            with contextlib.closing(urllib2.urlopen(import_url)) as f:
+                return f.read()
+        except Exception, ex:
+            ex = exceptions.DSLParsingLogicException(
+                13, 'Import failed: Unable to open import url '
+                    '{0}; {1}'.format(import_url, str(ex)))
+            raise ex
+    else:
+        try:
+            r = requests.get(import_url, timeout=DEFAULT_REQUEST_TIMEOUT)
+            num_retries = 0
+            while (not r.status_code == requests.codes.ok) and num_retries < DEFAULT_NUMBER_RETRIES:
+                time.sleep(DEFAULT_RETRY_DELAY)
+                r = requests.get(import_url)
+                num_retries += 1
+            if r.status_code == requests.codes.ok:
+                return r.text
+            else:
+                ex = exceptions.DSLParsingLogicException(
+                    13, 'Import failed: Unable to open import url '
+                        '{0};'.format(import_url))
+                raise ex
+        except Exception, ex:
+            ex = exceptions.DSLParsingLogicException(
+                13, 'Import failed: Unable to open import url '
+                    '{0}; {1}'.format(import_url, str(ex)))
+            raise ex
