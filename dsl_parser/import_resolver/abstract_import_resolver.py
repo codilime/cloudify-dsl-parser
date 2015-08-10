@@ -46,12 +46,6 @@ class AbstractImportResolver(object):
         return read_import(import_url)
 
 
-def is_valid_code(code):
-    if code >= 200 and code <=299:
-        return True
-    return False
-
-
 def read_import(import_url):
     if import_url.startswith('file://'):
         try:
