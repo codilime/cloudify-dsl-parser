@@ -17,6 +17,7 @@ import abc
 import contextlib
 import urllib2
 import time
+
 import requests
 
 from dsl_parser import exceptions
@@ -24,6 +25,7 @@ from dsl_parser import exceptions
 DEFAULT_RETRY_DELAY = 1
 DEFAULT_NUMBER_RETRIES = 5
 DEFAULT_REQUEST_TIMEOUT = 30
+
 
 class AbstractImportResolver(object):
     """
@@ -47,32 +49,32 @@ class AbstractImportResolver(object):
 
 
 def read_import(import_url):
+    error_str = 'Import failed: Unable to open import url'
     if import_url.startswith('file://'):
         try:
             with contextlib.closing(urllib2.urlopen(import_url)) as f:
                 return f.read()
         except Exception, ex:
             ex = exceptions.DSLParsingLogicException(
-                13, 'Import failed: Unable to open import url '
-                    '{0}; {1}'.format(import_url, str(ex)))
+                13, '{0} {1}; {2}'.format(error_str, import_url, ex))
             raise ex
     else:
-        try:
-            r = requests.get(import_url, timeout=DEFAULT_REQUEST_TIMEOUT)
-            num_retries = 0
-            while (not r.status_code == requests.codes.ok) and num_retries < DEFAULT_NUMBER_RETRIES:
+        num_retries = 0
+        while True:
+            try:
+                response = requests.get(import_url,
+                                        timeout=DEFAULT_REQUEST_TIMEOUT)
+            except Exception as err:
+                if num_retries >= DEFAULT_NUMBER_RETRIES:
+                    ex = exceptions.DSLParsingLogicException(
+                        13, '{0} {1}; {2}'.format(error_str, import_url, err))
+                    raise ex
                 time.sleep(DEFAULT_RETRY_DELAY)
-                r = requests.get(import_url)
                 num_retries += 1
-            if r.status_code == requests.codes.ok:
-                return r.text
             else:
-                ex = exceptions.DSLParsingLogicException(
-                    13, 'Import failed: Unable to open import url '
-                        '{0};'.format(import_url))
-                raise ex
-        except Exception, ex:
-            ex = exceptions.DSLParsingLogicException(
-                13, 'Import failed: Unable to open import url '
-                    '{0}; {1}'.format(import_url, str(ex)))
-            raise ex
+                if 200 <= response.status_code < 300:
+                    return response.text
+                else:
+                    ex = exceptions.DSLParsingLogicException(
+                        13, '{0} {1};'.format(error_str, import_url))
+                    raise ex
