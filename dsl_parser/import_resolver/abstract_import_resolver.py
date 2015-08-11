@@ -50,7 +50,7 @@ class AbstractImportResolver(object):
 
 def read_import(import_url):
     error_str = 'Import failed: Unable to open import url'
-    if import_url.startswith('file://'):
+    if import_url.startswith('file:'):
         try:
             with contextlib.closing(urllib2.urlopen(import_url)) as f:
                 return f.read()
