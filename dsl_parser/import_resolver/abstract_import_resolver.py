@@ -60,7 +60,6 @@ def read_import(import_url):
             raise ex
     else:
         num_retries = 0
-        response = None
         while True:
             try:
                 response = requests.get(import_url,
@@ -68,8 +67,8 @@ def read_import(import_url):
             except Exception as err:
                 if num_retries >= DEFAULT_NUMBER_RETRIES:
                     ex = exceptions.DSLParsingLogicException(
-                        13, '{0} {1}; {2}; status code: {3}'.format(
-                            error_str, import_url, err, response.status_code))
+                        13, '{0} {1}; {2};'.format(
+                            error_str, import_url, err))
                     raise ex
                 time.sleep(DEFAULT_RETRY_DELAY)
                 num_retries += 1
