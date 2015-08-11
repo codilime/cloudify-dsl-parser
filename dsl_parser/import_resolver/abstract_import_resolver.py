@@ -60,6 +60,7 @@ def read_import(import_url):
             raise ex
     else:
         num_retries = 0
+        response = None
         while True:
             try:
                 response = requests.get(import_url,
