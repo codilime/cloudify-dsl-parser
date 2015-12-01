@@ -328,7 +328,7 @@ def _post_process_nodes(processed_nodes, types, relationships, plugins,
         node[constants.DEPLOYMENT_PLUGINS_TO_INSTALL] = \
             deployment_plugins_to_install.values()
 
-    _validate_agent_plugins_on_host_nodes(processed_nodes)
+    #_validate_agent_plugins_on_host_nodes(processed_nodes)
     _validate_type_impls(type_impls)
     _validate_relationship_impls(relationship_impls)
 

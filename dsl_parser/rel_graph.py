@@ -446,7 +446,7 @@ def _node_instance_id(node_id, ctx):
 
 
 def _generate_id():
-    return '%d' % random.randrange(10 ** 6)
+    return '%d' % random.randrange(20000)
 
 
 def _node_instance_copy(node, node_instance_id):
@@ -505,8 +505,11 @@ def _node_id_from_node_instance(instance):
 
 
 def _number_of_instances(node):
-    return (node.get('instances', {}).get('deploy') or
-            node.get('number_of_instances'))
+    num_of_instances_to_deploy = node.get('instances', {}).get('deploy')
+    if num_of_instances_to_deploy is None:
+        return node.get('number_of_instances')
+    else:
+        return num_of_instances_to_deploy
 
 
 class IllegalConnectedToConnectionType(Exception):
