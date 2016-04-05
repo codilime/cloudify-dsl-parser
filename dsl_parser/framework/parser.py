@@ -311,6 +311,7 @@ class Parser(object):
                     not isinstance(value, schema.type)):
                 raise exceptions.DSLParsingFormatException(
                     1, _expected_type_message(value, schema.type))
+
         if value is not None:
             if isinstance(element.schema, list):
                 validated = False

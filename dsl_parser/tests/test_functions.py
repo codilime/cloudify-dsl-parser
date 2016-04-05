@@ -21,6 +21,31 @@ from dsl_parser.tests.abstract_test_parser import AbstractTestParser
 from dsl_parser.tests.abstract_test_parser import timeout
 
 
+class TestGetInput(AbstractTestParser):
+
+    def test_inputs_in_instances(self):
+        yaml = """
+inputs:
+    num_instances:
+        default: 9
+
+node_types:
+    vm_type:
+        properties:
+            prop1:
+                default: 1
+
+node_templates:
+    vm:
+        type: vm_type
+        instances:
+            deploy: { get_input: num_instances }
+"""
+        parsed = prepare_deployment_plan(self.parse(yaml))
+        vm = self.get_node_by_name(parsed, 'vm')
+        self.assertEqual(9, vm['instances']['deploy'])
+
+
 class TestGetProperty(AbstractTestParser):
 
     def test_node_template_properties(self):

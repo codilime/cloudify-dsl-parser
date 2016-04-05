@@ -149,7 +149,7 @@ class NodeTemplateRelationshipProperties(Element):
 class NodeTemplateInstancesDeploy(Element):
 
     required = True
-    schema = Leaf(type=int)
+    schema = Leaf(type=(int, dict))
 
     def validate(self):
         if self.initial_value < 0:

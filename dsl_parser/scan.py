@@ -120,6 +120,14 @@ def scan_service_template(plan, handler, replace=False):
                             node_template['name']),
                         replace=replace)
 
+        scan_properties(node_template['instances'],
+                        handler,
+                        scope=NODE_TEMPLATE_SCOPE,
+                        context=node_template,
+                        path='{0}.instances'.format(
+                            node_template['name']),
+                        replace=replace)
+
         scan_node_operation_properties(node_template, handler, replace=replace)
     for output_name, output in plan.outputs.iteritems():
         scan_properties(output,
