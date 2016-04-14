@@ -13,12 +13,14 @@
 #    * See the License for the specific language governing permissions and
 #    * limitations under the License.
 
+from collections import OrderedDict
 import copy
 import contextlib
 import importlib
 import urllib2
 import sys
 
+from networkx import DiGraph
 import yaml.parser
 
 from dsl_parser import yaml_loader
@@ -316,3 +318,9 @@ def get_class(class_path):
                          .format(class_module_str, class_name))
 
     return getattr(module, class_name)
+
+
+class OrderedDiGraph(DiGraph):
+    """Like a DiGraph but keeps the ordering of edges."""
+
+    adjlist_dict_factory = OrderedDict

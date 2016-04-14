@@ -20,6 +20,7 @@ import random
 import networkx as nx
 
 from dsl_parser import constants
+from dsl_parser.utils import OrderedDiGraph
 
 NODES = 'nodes'
 RELATIONSHIPS = 'relationships'
@@ -72,7 +73,7 @@ Container = collections.namedtuple('Container', 'node_instance '
 
 
 def build_node_graph(nodes):
-    graph = nx.DiGraph()
+    graph = OrderedDiGraph()
     for node in nodes:
         node_id = node['id']
         graph.add_node(node_id, node=node)
@@ -89,7 +90,7 @@ def build_deployment_node_graph(plan_node_graph,
 
     _verify_no_unsupported_relationships(plan_node_graph)
 
-    deployment_node_graph = nx.DiGraph()
+    deployment_node_graph = OrderedDiGraph()
     ctx = GraphContext(
         plan_node_graph=plan_node_graph,
         deployment_node_graph=deployment_node_graph,
@@ -152,7 +153,7 @@ def extract_removed_node_instances(previous_deployment_node_graph,
 
 
 def _graph_diff(G, H, node_instance_attributes):
-    result = nx.DiGraph()
+    result = OrderedDiGraph()
     for n1, data in G.nodes_iter(data=True):
         if n1 in H:
             continue
@@ -355,7 +356,6 @@ def _handle_host_instance_id(current_host_instance_id,
 
 
 def _handle_connected_to_and_depends_on(ctx):
-
     relationship_target_ids = {}
     if ctx.modification:
         for s, t, e_data in ctx.previous_deployment_node_graph.edges_iter(
@@ -367,9 +367,9 @@ def _handle_connected_to_and_depends_on(ctx):
                    _node_id_from_node_instance(t_node),
                    rel['type'])
             if key not in relationship_target_ids:
-                relationship_target_ids[key] = set()
+                relationship_target_ids[key] = list()
             target_ids = relationship_target_ids[key]
-            target_ids.add(rel['target_id'])
+            target_ids.append(rel['target_id'])
 
     connected_graph = _build_connected_to_and_depends_on_graph(
         ctx.plan_node_graph)
@@ -389,7 +389,7 @@ def _handle_connected_to_and_depends_on(ctx):
                         "{0}->{1} of type '{2}')".format(source_node_id,
                                                          target_node_id,
                                                          relationship['type']))
-                target_node_instance_id = target_ids.copy().pop()
+                target_node_instance_id = list(target_ids).pop()
             else:
                 target_node_instance_id = min(target_node_instance_ids)
             target_node_instance_ids = [target_node_instance_id]
@@ -422,7 +422,7 @@ def _build_contained_in_graph(graph):
 def _build_graph_by_relationship_types(graph,
                                        build_from_types,
                                        exclude_types):
-    relationship_base_graph = nx.DiGraph()
+    relationship_base_graph = OrderedDiGraph()
     for source, target, edge_data in graph.edges_iter(data=True):
         include_edge = (
             _relationship_type_hierarchy_includes_one_of(

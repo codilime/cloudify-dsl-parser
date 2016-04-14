@@ -1858,6 +1858,51 @@ relationships:
         result = self.parse(yaml)
         self.assertEquals('test_node1', result['nodes'][1]['host_id'])
 
+    def test_node_relationships_ordered(
+            self):
+        yaml = """
+node_templates:
+    related1:
+        type: cloudify.nodes.Compute
+    related2:
+        type: cloudify.nodes.Compute
+    related3:
+        type: cloudify.nodes.Compute
+    related4:
+        type: cloudify.nodes.Compute
+    related5:
+        type: cloudify.nodes.Compute
+    related6:
+        type: cloudify.nodes.Compute
+    test_node:
+        type: cloudify.nodes.Compute
+        relationships:
+            -   type: cloudify.relationships.connected_to
+                target: related1
+            -   type: cloudify.relationships.connected_to
+                target: related2
+            -   type: cloudify.relationships.connected_to
+                target: related3
+            -   type: cloudify.relationships.connected_to
+                target: related4
+            -   type: cloudify.relationships.connected_to
+                target: related5
+            -   type: cloudify.relationships.connected_to
+                target: related6
+
+node_types:
+    cloudify.nodes.Compute: {}
+
+relationships:
+    cloudify.relationships.connected_to: {}
+            """
+        result = self.parse_1_2(yaml)
+        test_node = next(n for n in result['nodes'] if n['id'] == 'test_node')
+        relationships = test_node['relationships']
+        related_nodes = [r['target_id'] for r in relationships]
+        self.assertEquals(related_nodes, ['related1', 'related2', 'related3',
+                                          'related4', 'related5', 'related6'])
+
     def test_node_type_operation_override(self):
         yaml = """
 node_templates:
